@@ -16,7 +16,7 @@ import java.util.List;
 /**
  *
  */
-public class SegmentStatistics extends RichMapFunction<Event, Tuple3<Event, Integer, Integer>> {
+public class SegmentStatistics extends RichMapFunction<Event, Event> {
 
   /**
    *  (totalPosRep, totalSpeeds, NOV)
@@ -33,7 +33,7 @@ public class SegmentStatistics extends RichMapFunction<Event, Tuple3<Event, Inte
   }
 
   @Override
-  public Tuple3<Event, Integer, Integer> map(Event value) throws Exception {
+  public Event map(Event value) throws Exception {
 
     if (segmentStatistics.contains(value.minute)) {
       Tuple3<Integer, Integer, Integer> prev = segmentStatistics.get(value.minute);
@@ -61,7 +61,10 @@ public class SegmentStatistics extends RichMapFunction<Event, Tuple3<Event, Inte
 
     double lav = totalCount != 0 ? (double) totalSpeed / totalCount : 0;
 
-    return Tuple3.of(value, t.f2, Double.valueOf(Math.ceil(lav)).intValue());
+    value.nov = t.f2;
+    value.lav = Double.valueOf(Math.ceil(lav)).intValue();
+
+    return value;
 
   }
 }

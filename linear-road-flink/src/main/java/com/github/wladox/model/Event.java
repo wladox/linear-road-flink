@@ -28,6 +28,9 @@ public class Event {
   public Integer accInSegment;
   public int samePositionCounter;
   public int previousPosition;
+  public int nov;
+  public int lav;
+  public int toll;
 
   public static Event parseFromString(String s) {
     String[] arr = s.replace("\n", "").split(",");
@@ -44,6 +47,7 @@ public class Event {
     e.setQid(arr[9]);
     e.setDay(Integer.parseInt(arr[14]));
     e.setMinute(e.time / 60 + 1);
+    e.setAccInSegment(-1);
     return e;
   }
 

@@ -9,13 +9,14 @@ import lombok.Data;
 @Data
 public class TollNotification {
 
-  public String carId;
-  public String time;
-  public String emit;
-  public String lav;
-  public String toll;
+  public Integer carId;
+  public Short time;
+  public Integer emit;
+  public Integer lav;
+  public Integer toll;
 
-  public TollNotification(String carId, String time, String emit, String lav, String toll) {
+
+  public TollNotification(Integer carId, Short time, Integer emit, Integer lav, Integer toll) {
     this.carId = carId;
     this.time = time;
     this.emit = emit;

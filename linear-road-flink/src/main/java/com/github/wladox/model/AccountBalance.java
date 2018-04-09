@@ -5,15 +5,21 @@ import lombok.Data;
 @Data
 public class AccountBalance {
 
-  public Integer previousToll;
-  public Integer currentTime;
+  public Integer balance;
+  public Short lastUpdated;
   public Integer currentToll;
+
+  public AccountBalance(Integer balance, Short lastUpdated, Integer currentToll) {
+    this.balance = balance;
+    this.lastUpdated = lastUpdated;
+    this.currentToll = currentToll;
+  }
 
   @Override
   public String toString() {
     return "AccountBalance{" +
-      "previousToll=" + previousToll +
-      ", currentTime=" + currentTime +
+      "balance=" + balance +
+      ", lastUpdated=" + lastUpdated +
       ", currentToll=" + currentToll +
       '}';
   }
