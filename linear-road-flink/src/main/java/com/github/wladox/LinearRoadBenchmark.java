@@ -36,28 +36,26 @@ public class LinearRoadBenchmark {
   public static void main(String[] args) throws Exception {
 
     if (args.length < 2) {
-      System.err.println("Usage: --topic <topicName> --consumer <group.id> (--parallelism <levelOfParallelism>)");
+      System.err.println("Usage: --inputTopic <topicName> --outputTopic <topicName> --kafka <bootstrapServer>)");
     }
 
     ParameterTool parameter = ParameterTool.fromArgs(args);
-    String topicName = parameter.get("topic");
+    String inputTopic = parameter.get("inputTopic");
+    String outputTopic = parameter.get("outputTopic");
+    String broker = parameter.get("kafka");
     String groupId = "flink"+System.currentTimeMillis();
-    int parallelism = parameter.getInt("parallelism", 2);
 
     final StreamExecutionEnvironment env  = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-    ExecutionConfig config = env.getConfig();
-    config.setParallelism(parallelism);
-
     Properties properties = new Properties();
-    properties.setProperty("bootstrap.servers", "localhost:9092");
+    properties.setProperty("bootstrap.servers", broker);
     properties.setProperty("group.id", groupId);
 
-    FlinkKafkaConsumer010<String> consumer = new FlinkKafkaConsumer010<>(topicName, new SimpleStringSchema(), properties);
+    FlinkKafkaConsumer010<String> consumer = new FlinkKafkaConsumer010<>(inputTopic, new SimpleStringSchema(), properties);
     consumer.setStartFromEarliest();
 
-    FlinkKafkaProducer010<String> producer = new FlinkKafkaProducer010<>("localhost:9092", "flink-output-1", new SimpleStringSchema());
+    FlinkKafkaProducer010<String> producer = new FlinkKafkaProducer010<>(broker, outputTopic, new SimpleStringSchema());
 
     DataStream<String> stream = env.addSource(consumer);
 
