@@ -11,12 +11,12 @@ public class TollNotification {
 
   public Integer carId;
   public Short time;
-  public Integer emit;
+  public Double emit;
   public Integer lav;
   public Integer toll;
 
 
-  public TollNotification(Integer carId, Short time, Integer emit, Integer lav, Integer toll) {
+  public TollNotification(Integer carId, Short time, Double emit, Integer lav, Integer toll) {
     this.carId = carId;
     this.time = time;
     this.emit = emit;
@@ -26,6 +26,6 @@ public class TollNotification {
 
   @Override
   public String toString() {
-    return String.format("%d,%s,%s,%s,%s,%s", 0, carId, time, emit, lav, toll);
+    return String.format("%d,%s,%s,%.2f,%s,%s", 0, carId, time, emit, lav, toll);
   }
 }

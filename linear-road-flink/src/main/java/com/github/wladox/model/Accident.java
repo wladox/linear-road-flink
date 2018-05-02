@@ -10,12 +10,11 @@ public class Accident {
 
   public Integer firstVehicle;
   public Integer secondVehicle;
-  public Short created;
+  public Integer created = 999999;
   public Integer cleared = -1;
 
-  public Accident(Integer firstVehicle, Integer secondVehicle, Short created) {
+  public Accident(Integer firstVehicle, Integer secondVehicle) {
     this.firstVehicle = firstVehicle;
     this.secondVehicle = secondVehicle;
-    this.created = created;
   }
 }

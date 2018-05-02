@@ -29,24 +29,30 @@ public class VehicleState extends RichMapFunction<Event, Event> {
   @Override
   public Event map(Event value) throws Exception {
 
-    positionReports.inc();
+    if (value.type.equals(0)) {
 
-    Event e = previousPositionReport.value();
+      positionReports.inc();
 
-    if (e != null && e.xWay.equals(value.xWay) && e.lane.equals(value.lane) && e.position.equals(value.position))
-      value.samePositionCounter += 1;
+      Event e = previousPositionReport.value();
+      if (e == null) {
+        value.isCrossing = true;
+        previousPositionReport.update(value);
+        return value;
+      }
 
-    if (value.samePositionCounter >= 4)
-      value.isStopped = true;
+      if (e.xWay.equals(value.xWay) && e.lane.equals(value.lane) && e.position.equals(value.position))
+        value.samePositionCounter += e.samePositionCounter;
 
-    if (e != null)
+      if (value.samePositionCounter >= 4)
+        value.isStopped = true;
+
       value.previousPosition = e.position;
+      previousPositionReport.update(value);
 
-    previousPositionReport.update(value);
-
-    if (e == null || !e.segment.equals(value.segment)) {
-      value.isCrossing = true;
-      return value;
+      if (!e.segment.equals(value.segment) || e.lane == 4) { // if the car exited after last position report
+        value.isCrossing = true;
+        return value;
+      }
     }
 
     return value;

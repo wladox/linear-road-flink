@@ -15,62 +15,15 @@ import org.apache.flink.util.Collector;
 public class App {
     public static void main( String[] args ) throws Exception {
 
-        // the port to connect to
-        final int port;
-        try {
-            final ParameterTool params = ParameterTool.fromArgs(args);
-            port = params.getInt("port");
-        } catch (Exception e) {
-            System.err.println("No port specified. Please run 'SocketWindowWordCount --port <port>'");
-            return;
-        }
+        String s = "0,3,4";
+        String[] arr = s.split(",");
+        Byte lane = Byte.parseByte(arr[2]);
+        System.out.println(lane);
+        System.out.println(lane == 4);
 
-        // get the execution environment
-        final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
 
-        // get input data by connecting to the socket
-        DataStream<String> text = env.socketTextStream("localhost", port, "\n");
-
-        // parse the data, group it, window it, and aggregate the counts
-        DataStream<WordWithCount> windowCounts = text
-                .flatMap(new FlatMapFunction<String, WordWithCount>() {
-                    @Override
-                    public void flatMap(String value, Collector<WordWithCount> out) {
-                        for (String word : value.split("\\s")) {
-                            out.collect(new WordWithCount(word, 1L));
-                        }
-                    }
-                })
-                .keyBy("word")
-                .timeWindow(Time.seconds(5), Time.seconds(1))
-                .reduce(new ReduceFunction<WordWithCount>() {
-                    @Override
-                    public WordWithCount reduce(WordWithCount a, WordWithCount b) {
-                        return new WordWithCount(a.word, a.count + b.count);
-                    }
-                });
-
-        // print the results with a single thread, rather than in parallel
-        windowCounts.print().setParallelism(1);
-
-        env.execute("Socket Window WordCount");
-    }
-
-    public static class WordWithCount {
-
-        public String word;
-        public long count;
-
-        public WordWithCount() {}
-
-        public WordWithCount(String word, long count) {
-            this.word = word;
-            this.count = count;
-        }
-
-        @Override
-        public String toString() {
-            return word + " : " + count;
-        }
+        Integer a = 4;
+        a += 1;
+        System.out.println(a);
     }
 }

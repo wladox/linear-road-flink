@@ -8,15 +8,24 @@ import lombok.Data;
 @Data
 public class AccidentNotification {
 
-  public String time;
-  public String emit;
-  public String xWay;
-  public String segment;
-  public String direction;
-  public String carId;
+  public Short time;
+  public Double emit;
+  public Integer xWay;
+  public Integer segment;
+  public Integer direction;
+  public Integer carId;
+
+  public AccidentNotification(Short time, Double emit, Integer xWay, Integer segment, Integer direction, Integer carId) {
+    this.time = time;
+    this.emit = emit;
+    this.xWay = xWay;
+    this.segment = segment;
+    this.direction = direction;
+    this.carId = carId;
+  }
 
   @Override
   public String toString() {
-    return String.format("1,%s,%s,%s,%s,%s,%s\n", time, emit, xWay, segment, direction, carId);
+    return String.format("1,%d,%.0f,%d,%d,%d,%d", time, emit, xWay, segment, direction, carId);
   }
 }
