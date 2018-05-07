@@ -1,7 +1,5 @@
 package com.github.wladox;
 
-import org.apache.flink.api.common.ExecutionConfig;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.serialization.SimpleStringSchema;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -15,6 +13,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 import org.apache.flink.util.Collector;
 
 import com.github.wladox.function.AccidentsState;
+import com.github.wladox.function.HistoricalTolls;
 import com.github.wladox.function.SegmentStatistics;
 import com.github.wladox.function.UpdateAccountBalance;
 import com.github.wladox.function.VehicleState;
@@ -35,18 +34,19 @@ public class LinearRoadBenchmark {
 
   public static void main(String[] args) throws Exception {
 
-    if (args.length < 2) {
-      System.err.println("Usage: --inputTopic <topicName> --outputTopic <topicName> --kafka <bootstrapServer>)");
+    if (args.length < 3) {
+      System.err.println("Usage: --input <topicName> --output <topicName> --history <pathToHistoricalTolls> --kafka <bootstrapServer>)");
     }
 
     ParameterTool parameter = ParameterTool.fromArgs(args);
-    String inputTopic = parameter.get("inputTopic");
-    String outputTopic = parameter.get("outputTopic");
+    String inputTopic = parameter.get("input");
+    String outputTopic = parameter.get("output");
     String broker = parameter.get("kafka");
     String groupId = "flink"+System.currentTimeMillis();
 
     final StreamExecutionEnvironment env  = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    env.getConfig().setGlobalJobParameters(parameter);
 
     Properties properties = new Properties();
     properties.setProperty("bootstrap.servers", broker);
@@ -115,16 +115,16 @@ public class LinearRoadBenchmark {
     // TYPE-3 QUERY IS NOT SUPPORTED DUE TO THE LACK OF SIDE INPUTS (FLIP-17)
     // https://cwiki.apache.org/confluence/display/FLINK/FLIP-17+Side+Inputs+for+DataStream+API)
 
-    /*DataStream<TollHistory> history = env.readTextFile("/home/wladox/workspace/LRSparkApplication/data/car.dat.tolls.dat")
-      .map((MapFunction<String, TollHistory>) value -> {
-        String[] arr = value.split(",");
-        return new TollHistory(Integer.parseInt(arr[0]), Integer.parseInt(arr[1]), Integer.parseInt(arr[2]), Integer.parseInt(arr[3]));
-      });
-
-    events.filter(s -> s.getType() == TYPE_DAILY_EXPENDITURE_REQUEST).join(history).where()*/
+    events
+      .filter(s -> s.getType() == TYPE_DAILY_EXPENDITURE_REQUEST)
+      .keyBy("xWay")
+      .map(new HistoricalTolls())
+      .addSink(producer);
 
 
     env.execute();
   }
+
+
 
 }
