@@ -9,13 +9,13 @@ import lombok.Data;
 public class AccidentNotification {
 
   public Short time;
-  public Double emit;
+  public Long emit;
   public Integer xWay;
   public Integer segment;
   public Integer direction;
   public Integer carId;
 
-  public AccidentNotification(Short time, Double emit, Integer xWay, Integer segment, Integer direction, Integer carId) {
+  public AccidentNotification(Short time, Long emit, Integer xWay, Integer segment, Integer direction, Integer carId) {
     this.time = time;
     this.emit = emit;
     this.xWay = xWay;
@@ -26,6 +26,6 @@ public class AccidentNotification {
 
   @Override
   public String toString() {
-    return String.format("1,%d,%.0f,%d,%d,%d,%d", time, emit, xWay, segment, direction, carId);
+    return String.format("1,%d,%d,%d,%d,%d,%d", time, emit, xWay, segment, direction, carId);
   }
 }

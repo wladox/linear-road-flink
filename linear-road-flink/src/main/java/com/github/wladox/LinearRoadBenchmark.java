@@ -8,6 +8,7 @@ import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 import org.apache.flink.util.Collector;
@@ -57,9 +58,15 @@ public class LinearRoadBenchmark {
 
     FlinkKafkaProducer010<String> producer = new FlinkKafkaProducer010<>(broker, outputTopic, new SimpleStringSchema());
 
-    DataStream<String> stream = env.addSource(consumer);
+    DataStream<String> stream = env.addSource(consumer).setParallelism(1);
 
     DataStream<Event> events = stream
+      .assignTimestampsAndWatermarks(new AscendingTimestampExtractor<String>() {
+        @Override
+        public long extractAscendingTimestamp(String element) {
+          return Long.valueOf(element.split(",")[1]);
+        }
+      })
       .filter(s -> !s.trim().isEmpty())
       .map(Event::parseFromString);
 
@@ -90,7 +97,7 @@ public class LinearRoadBenchmark {
       @Override
       public String map(Event value) throws Exception {
         long emit = System.currentTimeMillis() - value.ingestTime;
-        return new AccidentNotification(value.time, 1.0, value.xWay, value.accInSegment, value.direction, value.vid).toString();
+        return new AccidentNotification(value.time, emit, value.xWay, value.accInSegment, value.direction, value.vid).toString();
       }
     }).addSink(producer);
 
@@ -103,9 +110,11 @@ public class LinearRoadBenchmark {
     };
 
     // TYPE-0 QUERY
-    accidents
+    DataStream<Event> segmentStatistics = accidents
       .keyBy(xWayDirSeg)
-      .map(new SegmentStatistics())
+      .map(new SegmentStatistics());
+
+    segmentStatistics
       .keyBy("vid")
       .map(new UpdateAccountBalance())
       .filter(s -> !s.isEmpty())
@@ -114,13 +123,11 @@ public class LinearRoadBenchmark {
 
     // TYPE-3 QUERY IS NOT SUPPORTED DUE TO THE LACK OF SIDE INPUTS (FLIP-17)
     // https://cwiki.apache.org/confluence/display/FLINK/FLIP-17+Side+Inputs+for+DataStream+API)
-
     events
       .filter(s -> s.getType() == TYPE_DAILY_EXPENDITURE_REQUEST)
       .keyBy("xWay")
       .map(new HistoricalTolls())
       .addSink(producer);
-
 
     env.execute();
   }

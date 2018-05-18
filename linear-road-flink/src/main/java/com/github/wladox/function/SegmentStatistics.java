@@ -38,16 +38,29 @@ public class SegmentStatistics extends RichMapFunction<Event, Event> {
   public Event map(Event value) throws Exception {
 
     if (value.type == 0) {
+      if (value.vid == 20619)
+        System.out.println();
       if (segmentStatistics.contains(value.minute)) {
         Tuple3<Integer, Integer, Set<Integer>> prev = segmentStatistics.get(value.minute);
         prev.f0 += 1;
         prev.f1 += value.speed;
-        prev.f2.add(value.vid);
+        boolean result = prev.f2.add(value.vid);
+        if (value.vid == 20619 && value.minute == 18 && value.segment == 55)
+          System.out.println("ADDED 20619" + result);
         segmentStatistics.put(value.minute, prev);
       } else {
         Set<Integer> cars = new HashSet<>();
         cars.add(value.vid);
         segmentStatistics.put(value.minute, Tuple3.of(1, value.speed, cars));
+        if (value.vid == 20619 && value.minute == 18)
+          System.out.println();
+      }
+
+      if (value.vid == 20619 && value.minute == 18 && value.segment == 55) {
+        if (segmentStatistics.get(value.minute).f2.contains(value.vid)) {
+          System.out.println("IST DRIN");
+        } else
+          System.out.println("IST NICHT DRIN");
       }
 
       int totalCount = 0;
@@ -62,6 +75,10 @@ public class SegmentStatistics extends RichMapFunction<Event, Event> {
       // return LAV for last 5 minutes
       if (value.minute > 1) {
         Tuple3<Integer, Integer, Set<Integer>> t = segmentStatistics.get(value.minute-1);
+        if (value.vid == 4602 && value.time == 1080)
+          System.out.println();
+        if (value.vid == 20619 && value.minute == 18)
+          System.out.println();
         int lav = totalCount > 0 ? (Math.round(totalSpeed / ((float) totalCount))) : 0;
         if (t != null)
           value.nov = t.f2.size();
