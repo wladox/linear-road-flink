@@ -99,7 +99,7 @@ public class LinearRoadBenchmark {
         long emit = System.currentTimeMillis() - value.ingestTime;
         return new AccidentNotification(value.time, emit, value.xWay, value.accInSegment, value.direction, value.vid).toString();
       }
-    }).addSink(producer);
+    }).addSink(producer).name("type-1");
 
 
     KeySelector<Event, XwayDirSeg> xWayDirSeg = new KeySelector<Event, XwayDirSeg>() {
@@ -118,7 +118,7 @@ public class LinearRoadBenchmark {
       .keyBy("vid")
       .map(new UpdateAccountBalance())
       .filter(s -> !s.isEmpty())
-      .addSink(producer);
+      .addSink(producer).name("type-0-2");
 
 
     // TYPE-3 QUERY IS NOT SUPPORTED DUE TO THE LACK OF SIDE INPUTS (FLIP-17)
@@ -127,7 +127,7 @@ public class LinearRoadBenchmark {
       .filter(s -> s.getType() == TYPE_DAILY_EXPENDITURE_REQUEST)
       .keyBy("xWay")
       .map(new HistoricalTolls())
-      .addSink(producer);
+      .addSink(producer).name("type-3");
 
     env.execute();
   }
