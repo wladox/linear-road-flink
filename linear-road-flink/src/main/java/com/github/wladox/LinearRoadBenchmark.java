@@ -75,7 +75,7 @@ public class LinearRoadBenchmark {
       .process(new ProcessFunction<Event, Event>() {
         @Override
         public void processElement(Event value, Context ctx, Collector<Event> out) throws Exception {
-          value.setIngestTime(ctx.timestamp());
+          value.setIngestTime(System.currentTimeMillis());
           out.collect(value);
         }
       })

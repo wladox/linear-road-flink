@@ -35,8 +35,8 @@ public class HistoricalTolls extends RichMapFunction<Event, String> {
   public String map(Event value) throws Exception {
     DailyExpenditure key = new DailyExpenditure(value.xWay, value.vid, value.day);
     String toll = myMap.get(key);
-    float emit = (System.currentTimeMillis()-value.ingestTime)/1000f;
-    return String.format("3,%d,%.2f,%s,%s", value.time, 1.0, value.qid, toll);
+    long emit = System.currentTimeMillis()-value.ingestTime;
+    return String.format("3,%d,%d,%s,%s", value.time, emit, value.qid, toll);
   }
 
 }
