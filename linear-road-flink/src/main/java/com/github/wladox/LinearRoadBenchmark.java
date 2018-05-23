@@ -24,6 +24,8 @@ import com.github.wladox.model.XwayDirSeg;
 
 import java.util.Properties;
 
+import scala.Tuple2;
+
 /**
  *  The entry point for running the benchmark.
  */
@@ -84,10 +86,10 @@ public class LinearRoadBenchmark {
 
     // TYPE-1 QUERY
     DataStream<Event> accidents = positionReports
-      .keyBy(new KeySelector<Event, Integer>() {
+      .keyBy(new KeySelector<Event, Tuple2<Integer, Integer>>() {
       @Override
-      public Integer getKey(Event value) throws Exception {
-        return value.direction;
+      public Tuple2<Integer, Integer> getKey(Event value) throws Exception {
+        return new Tuple2<>(value.xWay, value.direction);
       }
     }).map(new AccidentsState());
 
@@ -115,7 +117,7 @@ public class LinearRoadBenchmark {
       .map(new SegmentStatistics());
 
     segmentStatistics
-      .keyBy("vid")
+      .keyBy("xWay", "vid")
       .map(new UpdateAccountBalance())
       .filter(s -> !s.isEmpty())
       .addSink(producer).name("type-0-2");
