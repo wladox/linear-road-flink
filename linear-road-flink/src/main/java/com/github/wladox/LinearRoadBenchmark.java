@@ -70,17 +70,17 @@ public class LinearRoadBenchmark {
         }
       })
       .filter(s -> !s.trim().isEmpty())
-      .map(Event::parseFromString);
-
-    DataStream<Event> positionReports = events
-      .filter(s -> s.getType() == TYPE_POSITION_REPORT || s.getType() == TYPE_ACCOUNT_BALANCE_REQUEST)
+      .map(Event::parseFromString)
       .process(new ProcessFunction<Event, Event>() {
         @Override
         public void processElement(Event value, Context ctx, Collector<Event> out) throws Exception {
           value.setIngestTime(System.currentTimeMillis());
           out.collect(value);
         }
-      })
+      });
+
+    DataStream<Event> positionReports = events
+      .filter(s -> s.getType() == TYPE_POSITION_REPORT || s.getType() == TYPE_ACCOUNT_BALANCE_REQUEST)
       .keyBy("vid")
       .map(new VehicleState());
 
@@ -101,7 +101,8 @@ public class LinearRoadBenchmark {
         long emit = System.currentTimeMillis() - value.ingestTime;
         return new AccidentNotification(value.time, emit, value.xWay, value.accInSegment, value.direction, value.vid).toString();
       }
-    }).addSink(producer).name("type-1");
+    }).addSink(producer)
+      .name("type-1");
 
 
     KeySelector<Event, XwayDirSeg> xWayDirSeg = new KeySelector<Event, XwayDirSeg>() {
@@ -120,7 +121,8 @@ public class LinearRoadBenchmark {
       .keyBy("xWay", "vid")
       .map(new UpdateAccountBalance())
       .filter(s -> !s.isEmpty())
-      .addSink(producer).name("type-0-2");
+      .addSink(producer)
+      .name("type-0-2");
 
 
     // TYPE-3 QUERY IS NOT SUPPORTED DUE TO THE LACK OF SIDE INPUTS (FLIP-17)
@@ -129,7 +131,8 @@ public class LinearRoadBenchmark {
       .filter(s -> s.getType() == TYPE_DAILY_EXPENDITURE_REQUEST)
       .keyBy("xWay")
       .map(new HistoricalTolls())
-      .addSink(producer).name("type-3");
+      .addSink(producer)
+      .name("type-3");
 
     env.execute();
   }
